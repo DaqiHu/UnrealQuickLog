@@ -1,3 +1,4 @@
+// Copyright (c) 2024 Daqi Hu. All rights reserved.
 #pragma once
 #include "Logging/LogMacros.h"
 

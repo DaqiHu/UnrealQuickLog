@@ -230,7 +230,7 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 #define qNullableRet(Var, Val, DefaultRet, Fmt, ...) \
 	auto Var = (Val); \
 	/* Use `Var == nullptr` rather than `!Var` to try to avoid unexpected user-defined implicit conversion (e.g.: TSharedPtr, TUniquePtr, TWeakInterfacePtr). */ \
-	if (Var == nullptr) \
+	if UNLIKELY(Var == nullptr) \
 	{ \
 		qErr(Fmt __VA_OPT__(,) __VA_ARGS__); \
 		return DefaultRet; \

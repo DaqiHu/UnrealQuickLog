@@ -273,6 +273,15 @@ Note that you should always `#define` it back to `LogTemp` at the end of file. U
 
 ## FAQ
 
+### Can I use this library in UE4?
+
+Yes. UE4 uses C++17 standard by default. This library currently only support C++20 (because of the use of `__VA_OPT__`). You can change the language standard for your game in `MyGame.Target.cs`:
+
+```csharp
+CppStandard = CppStandardVersion.Cpp20;
+CppStandardEngine = CppStandardVersion.Cpp20;
+```
+
 ### Do I really need to redefine the log category macro?
 
 Not actually.

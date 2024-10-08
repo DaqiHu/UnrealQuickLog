@@ -2,6 +2,8 @@
 #pragma once
 #include "Logging/LogMacros.h"
 
+// clang-format off
+
 // Unreal Engine doesn't have these warning suppress macros for MSVC. 
 #ifndef PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 #define PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS \
@@ -213,7 +215,7 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 ///////////////////////////// Formatter helpers //////////////////////////////////////
 
 /** Bool to String. */
-#define qBoolToStr(bVar) (bVar ? TEXT("true") : TEXT("false"))
+#define qB2S(bVar) (bVar ? TEXT("true") : TEXT("false"))
 
 // TODO: Use template SFINAE to auto deduce type to support TArrays, FGameplayTagContainers, etc. And ensure type safety.
 
@@ -254,7 +256,7 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 #define qNullableRet(Var, Val, DefaultRet, Fmt, ...) \
 	auto Var = (Val); \
 	/* Use `Var == nullptr` rather than `!Var` to try to avoid unexpected user-defined implicit conversion (e.g.: TSharedPtr, TUniquePtr, TWeakInterfacePtr). */ \
-	if (Var == nullptr) \
+	if UNLIKELY(Var == nullptr) \
 	{ \
 		qErr(Fmt __VA_OPT__(,) __VA_ARGS__); \
 		return DefaultRet; \
@@ -274,3 +276,5 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 
 /** Creates a local variable and check if it is null, return value is `-1` (-1, -1L, -1.0f, -1.0). */
 #define qNullableRetNeg1(Var, Val, Fmt, ...)	qNullableRet(Var, Val, -1, Fmt __VA_OPT__(,) __VA_ARGS__)
+
+// clang-format on

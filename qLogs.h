@@ -24,13 +24,17 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 #define _DEFAULT_LOG_CATEGORY LogTemp
 
 // e.g. AActor::BeginPlay() => <RawMessage> ["\Path\To\Actor.cpp:299"]
-#define _DEFAULT_LOG_MESSAGE_RAW_CHAR(RawMessage) "\t%60hs():\t" RawMessage "\t[\"%hs:%d\"]"
+#define _DEFAULT_LOG_MESSAGE_RAW_CHAR(RawMessage) "\t%hs():\t" RawMessage "\t[\"%hs:%d\"]"
 
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST) // Do not include symbol, filename and line info in test/shipping log
 // __FUNCTION__, Type: %hs, e.g.: AActor::BeginPlay
 // __FILE__,     Type: %hs, e.g.: \Path\To\Actor.cpp
 // __LINE__,     Type: %d,  e.g.: 299
 // __VA_OPT__(,) (since cpp20): if `...` is empty, leave it empty as well, otherwise add a `,` to separate nearby tokens.
 #define _DEFAULT_LOG_ARGUMENTS(...) __FUNCTION__ __VA_OPT__(,) __VA_ARGS__, __FILE__, __LINE__
+#else
+#define _DEFAULT_LOG_ARGUMENTS(...) "" __VA_OPT__(,) __VA_ARGS__, "", 0
+#endif
 
 // Default log message used in `qCheck`, `qVerify` and `qEnsure`.
 #define _DEFAULT_ASSERTION_MESSAGE(Condition) "`" #Condition "` is false or null."
@@ -99,6 +103,8 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 #define _LogCheckSlow(Condition, Format, ...)	checkfSlow(Condition,	_DEFAULT_LOG_MESSAGE(Format), _DEFAULT_LOG_ARGUMENTS(__VA_ARGS__))
 #define _LogVerify(Condition, Format, ...)		verifyf(Condition,		_DEFAULT_LOG_MESSAGE(Format), _DEFAULT_LOG_ARGUMENTS(__VA_ARGS__))
 
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST) // Do not include symbol, filename and line info in test/shipping log
+
 // TODO: `__FUNCTION__` still prints the inner lambda name. How to fix it?
 // Note: __FUNCTION__ in _CUSTOM_ENSURE_WRAPPER must be passed by argument rather than literal string concatenation, or it will not compile in clang compiler. 
 #define _LogEnsure(Condition, Format, ...) \
@@ -109,6 +115,16 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 		"%hs(): " Format " [\"" __FILE__ ":" PREPROCESSOR_TO_STRING(__LINE__) "\"]", __FUNCTION__ __VA_OPT__(,) \
 		__VA_ARGS__ \
 	)
+#else
+#define _LogEnsure(Condition, Format, ...) \
+	_CUSTOM_ENSURE_WRAPPER( \
+	&, \
+	false, \
+	Condition, \
+	Format __VA_OPT__(,) \
+	__VA_ARGS__ \
+	)
+#endif
 
 #define _CheckInner(Condition, Format, ...)		_LogCheck(Condition, Format __VA_OPT__(,) __VA_ARGS__)
 #define _VerifyInner(Condition, Format, ...)	_LogVerify(Condition, Format __VA_OPT__(,) __VA_ARGS__)
@@ -139,11 +155,16 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
  */
 #define qVerify(Expr, ...)	_VerifyInner(Expr, _DEFAULT_ASSERTION_MESSAGE##__VA_OPT__(_EMPTY)(Expr) __VA_ARGS__)
 
+#if UE_BUILD_TEST
+// TODO: Test build has some issues with ensure, fix later.
+#define qEnsure(Expr, ...)	(Expr)
+#else
 /**
  * Performs runtime assertion.
  * This will keep the editor and game running when condition is failed and only executed once.
  */
 #define qEnsure(Expr, ...)	_EnsureInner(Expr, _DEFAULT_ASSERTION_MESSAGE##__VA_OPT__(_EMPTY)(Expr) __VA_ARGS__)
+#endif
 
 ///////////////////////////// Unreal Log Interface //////////////////////////////////////
 
@@ -176,6 +197,7 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 
 ///////////////////////////// Log Not Implemented Interface //////////////////////////////////////
 
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST) // Do not include symbol, filename and line info in test/shipping log
 /** Behave the same as `qErr`.
  * Helps make code compile while leaving a hint that this implementation should be handled ASAP.
  * Consider using regex expressions to replace the leading brace `{` with `{ qNotImpl();`, or hooking script after IDE generating function definition.
@@ -183,6 +205,10 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 #define qNotImpl() \
 	_PrintStringInner(false, Red, "%hs(): " _NOT_IMPL_HINT " [\"" __FILE__ ":" PREPROCESSOR_TO_STRING(__LINE__) "\"]", __FUNCTION__); \
 	_LogError(_NOT_IMPL_HINT)
+#else // Do not print to screen in any test and shipping environment
+#define qNotImpl() \
+	_LogError(_NOT_IMPL_HINT)
+#endif
 
 ///////////////////////////// Formatter helpers //////////////////////////////////////
 

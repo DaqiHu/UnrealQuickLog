@@ -72,7 +72,7 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 	if (GAreScreenMessagesEnabled && GEngine) \
 	{ \
 		_PrintStringPrefix(); \
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Color, _Prefix + __VA_OPT__(FString::Printf) (TEXT(Format) __VA_OPT__(,) __VA_ARGS__)); \
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Color, _Prefix + __VA_OPT__(FString::Printf) (TEXT(Format) __VA_OPT__(,) __VA_ARGS__)); \
 	} \
 
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST) || USE_LOGGING_IN_SHIPPING // Do not Print in Shipping or Test unless explicitly enabled.

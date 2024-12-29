@@ -46,6 +46,13 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 
 ///////////////////////////// Log Helpers Internals, DON'T CALL DIRECTLY! //////////////////////////////////////
 
+// HACK! This macro is not a preprocessor and will not compile in Chaos.cpp
+#if 1 || ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 5
+#define _PLAY_IN_EDITOR_ID UE::GetPlayInEditorID()
+#else
+#define _PLAY_IN_EDITOR_ID GPlayInEditorID
+#endif
+
 #define _PrintStringPrefix() \
 	UWorld* _GlobalWorld = GWorld->GetWorld(); \
 	FString _Prefix; \
@@ -54,7 +61,7 @@ PRAGMA_DISABLE_MACRO_REDEFINED_WARNINGS
 		switch(_GlobalWorld->GetNetMode()) \
 		{ \
 		case NM_Client: \
-			_Prefix = FString::Printf(TEXT("Client %d: "), GPlayInEditorID); \
+			_Prefix = FString::Printf(TEXT("Client %d: "), _PLAY_IN_EDITOR_ID); \
 			break; \
 		case NM_DedicatedServer: \
 		case NM_ListenServer: \
